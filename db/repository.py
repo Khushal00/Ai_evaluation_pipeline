@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 import threading
 from pathlib import Path
 
 from db.models import CREATE_TABLE_SQL
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_DB_PATH = Path(__file__).resolve().parent / "evaluation.db"
 _write_lock = threading.Lock()
@@ -49,5 +52,12 @@ def save_result(result: dict) -> None:
 
     with _write_lock:
         with sqlite3.connect(_active_db_path) as conn:
-            conn.execute(sql, params)
+            cur = conn.execute(sql, params)
             conn.commit()
+            logger.debug(
+                "saved evaluation row_id=%s task_id=%s flag=%s score=%s",
+                cur.lastrowid,
+                result["task_id"],
+                result["flag"],
+                result["score"],
+            )

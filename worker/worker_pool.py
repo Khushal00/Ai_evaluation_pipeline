@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-from queue.queue_manager import QueueManager
+from task_queue.queue_manager import QueueManager
 from worker.worker import SENTINEL, worker_loop
 
 

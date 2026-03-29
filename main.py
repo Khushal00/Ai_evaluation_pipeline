@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 from api.routes import router
 from db.repository import init_db
-from queue.queue_manager import QueueManager
+from task_queue.queue_manager import QueueManager
 from worker.worker_pool import start_workers, stop_workers
 
 DEFAULT_WORKERS = 4

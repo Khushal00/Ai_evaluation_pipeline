@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import logging
+
 from db.repository import save_result
 from evaluation.engine import evaluate
 
-from queue.queue_manager import QueueManager
+from task_queue.queue_manager import QueueManager
+
+logger = logging.getLogger(__name__)
 
 SENTINEL = object()
 
 
 def _format_evaluation_log(worker_id: int, task: dict, result: dict) -> str:
+    bid = task.get("batch_id", "?")
     lines = [
-        f"[worker {worker_id}] task_id={task.get('task_id', '?')} "
+        f"[worker {worker_id}] batch_id={bid} task_id={task.get('task_id', '?')} "
         f"flag={result['flag']} final_score={result['final_score']:.2f}",
     ]
     for item in result["results"]:
@@ -32,14 +37,16 @@ async def worker_loop(queue: QueueManager, worker_id: int) -> None:
         try:
             result = evaluate(task)
         except Exception as exc:
-            print(
-                f"[worker {worker_id}] evaluation failed: {exc!s}\n"
-                f"    task keys={list(task) if isinstance(task, dict) else type(task)}",
+            logger.exception(
+                "[worker %s] evaluation failed: %s task_keys=%s",
+                worker_id,
+                exc,
+                list(task) if isinstance(task, dict) else type(task),
             )
             queue.task_done()
             continue
 
-        print(_format_evaluation_log(worker_id, task, result))
+        logger.info(_format_evaluation_log(worker_id, task, result))
 
         row = {
             "task_id": task["task_id"],

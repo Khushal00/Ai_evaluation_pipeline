@@ -9,22 +9,38 @@ from evaluation.scorer import aggregate_scores, assign_flag
 
 def evaluate(task: dict) -> dict:
     """
-    Run keyword and length evaluators on ``task``.
+    Run configured evaluators on ``task``.
 
     Expected keys:
         * ``input`` — optional prompt/context (not used by current evaluators)
         * ``output`` — model/system output text to score
-        * ``keyword`` — substring that must appear in ``output``
-        * ``max_length`` — maximum allowed length of ``output`` (characters)
+        * ``rules`` — client-provided evaluator configuration
     """
     output = task["output"]
-    keyword = task.get("keyword")
-    max_length = task.get("max_length", 10_000)
+    rules = task.get("rules") or {}
+    keyword_rule = rules.get("keyword") or {}
+    length_rule = rules.get("length") or {}
 
-    results = [
-        evaluate_keyword(output, keyword),
-        evaluate_length(output, int(max_length)),
-    ]
+    results = []
+    if keyword_rule.get("enabled"):
+        results.append(
+            evaluate_keyword(
+                output,
+                keyword_rule.get("keywords"),
+                match_mode=keyword_rule.get("match_mode", "any"),
+                case_sensitive=bool(keyword_rule.get("case_sensitive", False)),
+                critical=bool(keyword_rule.get("critical", True)),
+            ),
+        )
+    if length_rule.get("enabled"):
+        max_length = length_rule.get("max_length", 10_000)
+        results.append(
+            evaluate_length(
+                output,
+                int(max_length),
+                critical=bool(length_rule.get("critical", False)),
+            ),
+        )
 
     final_score = aggregate_scores(results)
     flag = assign_flag(results)

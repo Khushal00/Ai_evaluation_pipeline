@@ -7,3 +7,6 @@ __pycache__/
 .mypy_cache/
 .DS_Store
 db/evaluation.db
+db/evaluation.db-shm
+db/evaluation.db-wal
+run.log

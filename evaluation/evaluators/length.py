@@ -5,7 +5,7 @@ from __future__ import annotations
 METRIC_NAME = "length"
 
 
-def evaluate_length(output: str, max_length: int) -> dict:
+def evaluate_length(output: str, max_length: int, *, critical: bool = False) -> dict:
     """
     Return whether ``output`` length is at or below ``max_length``.
 
@@ -17,6 +17,7 @@ def evaluate_length(output: str, max_length: int) -> dict:
             "score": 0.0,
             "passed": False,
             "reason": "max_length must be non-negative",
+            "critical": critical,
         }
 
     length = len(output)
@@ -32,4 +33,5 @@ def evaluate_length(output: str, max_length: int) -> dict:
         "score": score,
         "passed": passed,
         "reason": reason,
+        "critical": critical,
     }

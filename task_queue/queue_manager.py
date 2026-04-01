@@ -16,6 +16,9 @@ class QueueManager:
     async def dequeue(self) -> Any:
         return await self._queue.get()
 
+    def get_nowait(self) -> Any:
+        return self._queue.get_nowait()
+
     def task_done(self) -> None:
         self._queue.task_done()
 
